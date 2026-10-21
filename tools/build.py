@@ -7,7 +7,7 @@
 import json, os, pathlib
 
 # ============ الإعدادات الأساسية (غيّرها هنا) ============
-DOMAIN = "https://www.example.com"      # <-- ضع عنوان موقعك الحقيقي بعد النشر (بدون / في النهاية)
+DOMAIN = "https://tabarak-1.github.io/tabarak-sa"      # <-- ضع عنوان موقعك الحقيقي بعد النشر (بدون / في النهاية)
 NAME = "تبارك"
 TAGLINE = "للعزل وكشف التسربات"
 PHONE = "0568654551"                    # رقم الاتصال (tel:)
@@ -365,7 +365,7 @@ write(".nojekyll", "")
 
 # ---------- 404 ----------
 write("404.html", page("404.html", f"الصفحة غير موجودة - {NAME}", "الصفحة المطلوبة غير موجودة.",
-  f'<section><div class="container content" style="text-align:center"><h1>الصفحة غير موجودة</h1><p>ربما تم نقل الصفحة أو أن الرابط غير صحيح.</p><p><a class="btn btn-dark" href="/index.html">العودة للرئيسية</a></p></div></section>').replace('<meta name="robots" content="index,follow,max-image-preview:large">','<meta name="robots" content="noindex">'))
+  f'<section><div class="container content" style="text-align:center"><h1>الصفحة غير موجودة</h1><p>ربما تم نقل الصفحة أو أن الرابط غير صحيح.</p><p><a class="btn btn-dark" href="{DOMAIN}/index.html">العودة للرئيسية</a></p></div></section>').replace('<meta name="robots" content="index,follow,max-image-preview:large">','<meta name="robots" content="noindex">'))
 
 # ---------- sitemap / robots / شعار ----------
 sm = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'

@@ -14,7 +14,7 @@
 
 ## إعدادات ضرورية بعد النشر
 1. افتح `tools/build.py` وغيّر `DOMAIN` إلى رابط موقعك الحقيقي، ثم شغّل `python3 tools/build.py`
-   (بدون بايثون: استبدل `https://www.example.com` بالرابط الحقيقي في كل الملفات، بما فيها `data/site.json` و`assets/post-template.html`).
+   (بدون بايثون: استبدل `https://tabarak-1.github.io/tabarak-sa` بالرابط الحقيقي في كل الملفات، بما فيها `data/site.json` و`assets/post-template.html`).
 2. أضف الموقع إلى Google Search Console وأرسل `sitemap.xml`، وأنشئ Google Business Profile للشركة في جدة.
 
 ## لوحة إدارة المقالات (admin.html)
