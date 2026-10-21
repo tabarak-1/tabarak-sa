@@ -55,8 +55,9 @@ code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;bor
 .page-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .page-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
 .page-card h3{margin:0 0 8px;color:var(--navy)}
-#page-source{width:100%;min-height:65vh;font:13px/1.6 ui-monospace,monospace;direction:ltr;white-space:pre;tab-size:2}
+#page-source{display:none}
 #htmlbox{font-family:monospace;font-size:.9rem;border-radius:0 0 10px 10px;min-height:320px}
+.tox-tinymce{border-radius:10px!important;direction:ltr}.tox .tox-edit-area__iframe{background:#fff}.visual-help{background:#f0f9ff;border:1px solid #bae6fd;padding:12px 14px;border-radius:10px;margin:12px 0}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .pv{position:fixed;inset:0;z-index:200;background:#fff;display:flex;flex-direction:column}
 .pvbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--navy);color:#fff}
@@ -108,7 +109,7 @@ code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;bor
 
 <section id="v-pages" hidden>
 <div class="bar"><h1>إدارة صفحات الموقع</h1><button id="pages-back" class="btn btn-light" type="button">رجوع للوحة التحكم</button></div>
-<div class="panel"><p class="hint">اختر صفحة لتعديل ملف HTML بالكامل. هذه أداة متقدمة؛ حافظ على وسوم SEO والروابط وأكواد الصفحة.</p><div id="page-list" class="page-grid"></div><div id="page-editor-wrap" hidden style="margin-top:18px"><label id="page-file-label" for="page-source">ملف الصفحة</label><textarea id="page-source" spellcheck="false"></textarea><div id="page-msg" class="msg" hidden></div><div class="actions"><button id="page-save" class="btn btn-primary" type="button">حفظ الصفحة ونشرها</button><button id="page-cancel" class="btn btn-light" type="button">إلغاء</button></div></div></div>
+<div class="panel"><p class="hint">اختر الصفحة ثم عدّل النصوص والصور والعناوين من محرر مرئي يشبه محرر ووردبريس. لن تحتاج إلى كتابة الأكواد.</p><div id="page-list" class="page-grid"></div><div id="page-editor-wrap" hidden style="margin-top:18px"><label id="page-file-label">تحرير الصفحة</label><div class="visual-help">حرّر المحتوى مباشرة من المحرر: حدّد النص لتنسيقه، أو استخدم زر الصورة لإدراج صورة من رابط. لا تحذف عناصر التنقل أو أزرار التواصل إذا كنت تريد الإبقاء عليها.</div><div id="page-visual" dir="rtl"></div><label for="page-image-upload" style="display:inline-block">إضافة صورة من الجهاز</label><input id="page-image-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="max-width:100%"><textarea id="page-source" spellcheck="false" hidden></textarea><div id="page-msg" class="msg" hidden></div><div class="actions"><button id="page-save" class="btn btn-primary" type="button">حفظ الصفحة ونشرها</button><button id="page-cancel" class="btn btn-light" type="button">إلغاء</button></div></div></div>
 </section>
 
 <section id="v-edit" hidden>
@@ -154,6 +155,7 @@ code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;bor
 
 <div id="pv" class="pv" hidden><div class="pvbar"><b>معاينة المقال (لم يُنشر بعد)</b><button id="pv-close" class="btn btn-light" type="button">إغلاق</button></div><iframe id="pv-frame" title="معاينة المقال"></iframe></div>
 
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
 <script src="assets/admin.js"></script>
 </body>
 </html>

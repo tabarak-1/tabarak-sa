@@ -225,8 +225,36 @@
 
   /* ---------- المحرر ---------- */
   var ed = $('editor'), htmlbox = $('htmlbox');
-  function getBody() { return clean(S.htmlMode ? htmlbox.value : ed.innerHTML); }
-  function setBody(html) { var c = clean(html || ''); ed.innerHTML = c; htmlbox.value = c; }
+  var pageOriginal = '', pageBodyScripts = [];
+  function initVisualEditor(id, height) {
+    if (!window.tinymce) return Promise.reject(new Error('تعذر تحميل المحرر المرئي. تحقق من اتصال الإنترنت ثم أعد تحميل الصفحة.'));
+    var existing = tinymce.get(id); if (existing) { existing.remove(); }
+    return tinymce.init({
+      selector: '#' + id, language: 'ar', directionality: 'rtl', height: height || 520,
+      menubar: 'file edit view insert format tools table help', branding: false, promotion: false,
+      plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table wordcount help directionality',
+      toolbar: 'undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | alignright aligncenter alignleft | bullist numlist outdent indent | link image media table | blockquote hr | removeformat | fullscreen preview',
+      block_formats: 'فقرة=p;عنوان 1=h1;عنوان 2=h2;عنوان 3=h3;عنوان 4=h4;اقتباس=blockquote',
+      content_style: 'body{font-family:Cairo,Tahoma,Arial,sans-serif;font-size:16px;line-height:1.9;direction:rtl;text-align:right;padding:16px}img{max-width:100%;height:auto}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}',
+      image_caption: true, automatic_uploads: false, paste_data_images: true,
+      link_default_target: '_blank', link_assume_external_targets: 'https',
+      extended_valid_elements: '*[*]', verify_html: false, convert_urls: false,
+      setup: function (editor) { editor.on('change input undo redo', function(){ editor.save(); }); }
+    });
+  }
+  function getBody() {
+    var t = window.tinymce && tinymce.get('editor');
+    return clean(S.htmlMode ? htmlbox.value : (t ? t.getContent() : ed.innerHTML));
+  }
+  function setBody(html) {
+    var c = clean(html || ''); ed.innerHTML = c; htmlbox.value = c;
+    var t = window.tinymce && tinymce.get('editor'); if (t) t.setContent(c);
+  }
+  initVisualEditor('editor', 520).then(function(){
+    var t = tinymce.get('editor'); if (t) t.setContent(ed.innerHTML || '<p></p>');
+    $('toolbar').hidden = true;
+    $('btn-html').textContent = 'عرض كود HTML (متقدم)';
+  }).catch(function(){});
   function cmd(c) {
     var x = document.execCommand.bind(document);
     switch (c) {
@@ -265,7 +293,7 @@
     document.execCommand('insertText', false, t);
   });
   $('btn-html').addEventListener('click', function () {
-    if (S.htmlMode) { ed.innerHTML = clean(htmlbox.value); } else { htmlbox.value = clean(ed.innerHTML); }
+    if (S.htmlMode) { ed.innerHTML = clean(htmlbox.value); var te = window.tinymce && tinymce.get('editor'); if (te) te.setContent(ed.innerHTML); } else { var te2 = window.tinymce && tinymce.get('editor'); htmlbox.value = clean(te2 ? te2.getContent() : ed.innerHTML); }
     S.htmlMode = !S.htmlMode;
     ed.hidden = S.htmlMode; htmlbox.hidden = !S.htmlMode;
     $('btn-html').textContent = S.htmlMode ? 'العودة للمحرر' : 'عرض كود HTML';
@@ -295,10 +323,32 @@
       var res = await fetch('https://api.github.com/repos/' + S.repo + '/contents/' + path, { method:'PUT', headers:Object.assign(hdrs(), {'Content-Type':'application/json'}), body:JSON.stringify({message:'إضافة صورة للموقع: '+file.name, content:base64, branch:S.branch}) });
       if (!res.ok) throw apiError(res.status);
       var imageUrl = new URL(path, siteRoot).href;
-      ed.focus(); document.execCommand('insertHTML', false, '<figure style="text-align:center"><img src="'+imageUrl.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" alt="'+alt.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'" loading="lazy" style="max-width:100%;height:auto"><figcaption>'+alt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</figcaption></figure><p></p>');
+      var articleEditor = window.tinymce && tinymce.get('editor'); var imageHtml = '<figure style="text-align:center"><img src="'+imageUrl.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" alt="'+alt.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'" loading="lazy" style="max-width:100%;height:auto"><figcaption>'+alt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</figcaption></figure><p></p>'; if (articleEditor) articleEditor.insertContent(imageHtml); else { ed.focus(); document.execCommand('insertHTML', false, imageHtml); }
       msg($('e-msg'), 'تم رفع الصورة وإدراجها. احفظ المقال لنشر التعديل.', 'ok');
     } catch (e) { msg($('e-msg'), e.message || 'تعذر رفع الصورة.', 'err'); }
     finally { input.disabled = false; input.value = ''; }
+  });
+
+  $('page-image-upload').addEventListener('change', async function () {
+    var file=this.files && this.files[0]; if(!file)return;
+    if(!/^image\/(png|jpeg|webp|gif)$/.test(file.type)){alert('اختر صورة PNG أو JPG أو WEBP أو GIF.');this.value='';return;}
+    if(file.size>5*1024*1024){alert('حجم الصورة يجب ألا يتجاوز 5 ميجابايت.');this.value='';return;}
+    var alt=prompt('اكتب وصفاً واضحاً للصورة لتحسين SEO:',file.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' '));
+    if(alt===null){this.value='';return;}
+    var input=this;
+    try{
+      msg($('page-msg'),'جارٍ رفع الصورة إلى الموقع...');input.disabled=true;
+      var dataUrl=await new Promise(function(resolve,reject){var r=new FileReader();r.onload=function(){resolve(r.result);};r.onerror=reject;r.readAsDataURL(file);});
+      var base64=String(dataUrl).split(',')[1],ext=file.type==='image/jpeg'?'jpg':file.type.split('/')[1];
+      var safe=(file.name.replace(/\.[^.]+$/,'').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'page-image');
+      var path='assets/uploads/'+safe+'-'+Date.now()+'.'+ext;
+      var res=await fetch('https://api.github.com/repos/'+S.repo+'/contents/'+path,{method:'PUT',headers:Object.assign(hdrs(),{'Content-Type':'application/json'}),body:JSON.stringify({message:'إضافة صورة للصفحة: '+file.name,content:base64,branch:S.branch})});
+      if(!res.ok)throw apiError(res.status);
+      var url=new URL(path,siteRoot).href, editor=window.tinymce&&tinymce.get('page-visual');
+      if(!editor)throw new Error('افتح صفحة في المحرر المرئي أولاً.');
+      editor.insertContent('<figure><img src="'+url.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" alt="'+alt.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'" style="max-width:100%;height:auto"><figcaption>'+alt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</figcaption></figure><p></p>');
+      msg($('page-msg'),'تم رفع الصورة وإدراجها في الصفحة. اضغط حفظ الصفحة لنشرها.','ok');
+    }catch(e){msg($('page-msg'),e.message||'تعذر رفع الصورة.','err');}finally{input.disabled=false;input.value='';}
   });
 
   /* ---------- إدارة ملفات صفحات الموقع ---------- */
@@ -309,9 +359,6 @@
     {path:'tank-insulation.html', title:'عزل الخزانات', desc:'محتوى صفحة خدمة عزل الخزانات'},
     {path:'blog/index.html', title:'صفحة المدونة', desc:'عنوان ووصف صفحة المقالات'},
     {path:'404.html', title:'صفحة الخطأ 404', desc:'محتوى صفحة الرابط غير الموجود'},
-    {path:'assets/style.css', title:'تصميم وألوان الموقع', desc:'تعديل الألوان والخطوط والمسافات والتنسيق العام'},
-    {path:'data/site.json', title:'بيانات الموقع', desc:'اسم النشاط والدومين ورقم الهاتف والإعدادات العامة'},
-    {path:'assets/logo.svg', title:'الشعار', desc:'تعديل كود الشعار بصيغة SVG'}
   ];
   var activePage = null;
   function renderPages() {
@@ -321,26 +368,39 @@
       var h = document.createElement('h3'); h.textContent=p.title;
       var d = document.createElement('p'); d.className='hint'; d.textContent=p.desc;
       var path = document.createElement('code'); path.textContent=p.path;
-      var b = document.createElement('button'); b.type='button'; b.className='btn btn-light'; b.textContent='تعديل كود الصفحة'; b.style.marginTop='12px'; b.onclick=function(){openPage(p);};
+      var b = document.createElement('button'); b.type='button'; b.className='btn btn-light'; b.textContent='فتح المحرر المرئي'; b.style.marginTop='12px'; b.onclick=function(){openPage(p);};
       card.appendChild(h); card.appendChild(d); card.appendChild(path); card.appendChild(b); box.appendChild(card);
     });
   }
   async function openPage(p) {
-    activePage=p; $('page-editor-wrap').hidden=false; $('page-file-label').textContent='تعديل الملف: '+p.path; $('page-source').value='جارٍ تحميل الملف...'; msg($('page-msg'),'');
-    try { var content=await readFile(p.path); if(content===null) throw new Error('الملف غير موجود في مستودع GitHub.'); $('page-source').value=content; $('page-editor-wrap').scrollIntoView({behavior:'smooth',block:'start'}); }
-    catch(e){msg($('page-msg'),e.message,'err'); $('page-source').value='';}
+    activePage=p; $('page-editor-wrap').hidden=false; $('page-file-label').textContent='تحرير مرئي: '+p.title; msg($('page-msg'),'جارٍ تحميل الصفحة...');
+    try {
+      var content=await readFile(p.path); if(content===null) throw new Error('الملف غير موجود في مستودع GitHub.');
+      pageOriginal=content;
+      var parser=new DOMParser(), doc=parser.parseFromString(content,'text/html');
+      pageBodyScripts=Array.prototype.slice.call(doc.body.querySelectorAll('script')).map(function(n){return n.outerHTML;});
+      Array.prototype.forEach.call(doc.body.querySelectorAll('script'),function(n){n.remove();});
+      if (!window.tinymce) throw new Error('تعذر تحميل المحرر المرئي. تحقق من الإنترنت وأعد المحاولة.');
+      if (!tinymce.get('page-visual')) await initVisualEditor('page-visual', 620);
+      tinymce.get('page-visual').setContent(doc.body.innerHTML);
+      msg($('page-msg'),'يمكنك تعديل النصوص والصور والعناوين من المحرر ثم الضغط على حفظ الصفحة.');
+      $('page-editor-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+    } catch(e){msg($('page-msg'),e.message,'err');}
   }
   $('btn-pages').addEventListener('click',function(){renderPages();$('page-editor-wrap').hidden=true;show('v-pages');});
   $('pages-back').addEventListener('click',function(){show('v-list');});
   $('page-cancel').addEventListener('click',function(){$('page-editor-wrap').hidden=true;activePage=null;});
   $('page-save').addEventListener('click',function(){
     if(!activePage)return;
-    if(!confirm('سيتم استبدال ملف '+activePage.path+' كاملاً ونشر التعديل. تأكد من الاحتفاظ بكود الصفحة وروابطها. هل تريد المتابعة؟'))return;
+    if(!confirm('سيتم حفظ التعديلات المرئية على صفحة '+activePage.title+' ونشرها. هل تريد المتابعة؟'))return;
     busy($('page-save'),'جارٍ الحفظ والنشر...',async function(){
-      var content=$('page-source').value;
-      if(/\.html?$/i.test(activePage.path) && !/<!doctype html|<html[\s>]/i.test(content))throw new Error('يبدو أن محتوى الملف ليس صفحة HTML كاملة.');
-      if(/\.json$/i.test(activePage.path)){try{JSON.parse(content);}catch(e){throw new Error('صيغة JSON غير صحيحة؛ راجع الفواصل وعلامات الاقتباس.');}}
-      await commit([{path:activePage.path,content:content}],'تعديل صفحة الموقع: '+activePage.path);
+      var editor=window.tinymce && tinymce.get('page-visual'); if(!editor)throw new Error('المحرر المرئي غير جاهز.');
+      var parser=new DOMParser(), doc=parser.parseFromString(pageOriginal,'text/html');
+      doc.body.innerHTML=editor.getContent();
+      pageBodyScripts.forEach(function(raw){var holder=doc.createElement('div');holder.innerHTML=raw;var script=holder.firstElementChild;if(script)doc.body.appendChild(script);});
+      var content='<!DOCTYPE html>\n'+doc.documentElement.outerHTML;
+      await commit([{path:activePage.path,content:content}],'تعديل مرئي لصفحة الموقع: '+activePage.path);
+      pageOriginal=content;
       msg($('page-msg'),'تم حفظ الصفحة في GitHub. سيظهر التحديث بعد انتهاء النشر.','ok');
     },$('page-msg'));
   });
