@@ -47,6 +47,15 @@ code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;bor
 .toolbar .sp{flex:1}
 .editor{max-width:none!important;min-height:320px;padding:18px;border:1.5px solid var(--line);border-radius:0 0 10px 10px;background:#fff;margin:0!important}
 .editor h2{font-size:1.4rem;margin-top:1rem}
+.editor img{max-width:100%;height:auto;border-radius:12px}
+.editor figure{margin:18px auto;text-align:center}
+.editor figcaption{font-size:.9rem;color:var(--muted);margin-top:6px}
+.editor table{width:100%;border-collapse:collapse;margin:16px 0}
+.editor th,.editor td{border:1px solid var(--line);padding:8px;text-align:right}
+.page-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.page-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+.page-card h3{margin:0 0 8px;color:var(--navy)}
+#page-source{width:100%;min-height:65vh;font:13px/1.6 ui-monospace,monospace;direction:ltr;white-space:pre;tab-size:2}
 #htmlbox{font-family:monospace;font-size:.9rem;border-radius:0 0 10px 10px;min-height:320px}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .pv{position:fixed;inset:0;z-index:200;background:#fff;display:flex;flex-direction:column}
@@ -92,9 +101,14 @@ code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;bor
 </section>
 
 <section id="v-list" hidden>
-<div class="bar"><h1>المقالات</h1><button id="btn-new" class="btn btn-primary">+ مقال جديد</button></div>
+<div class="bar"><h1>لوحة التحكم</h1><div class="actions" style="margin:0"><button id="btn-pages" class="btn btn-light" type="button">إدارة صفحات الموقع</button><button id="btn-new" class="btn btn-primary">+ مقال جديد</button></div></div>
 <div id="l-banner" class="msg" hidden></div>
 <div id="posts"></div>
+</section>
+
+<section id="v-pages" hidden>
+<div class="bar"><h1>إدارة صفحات الموقع</h1><button id="pages-back" class="btn btn-light" type="button">رجوع للوحة التحكم</button></div>
+<div class="panel"><p class="hint">اختر صفحة لتعديل ملف HTML بالكامل. هذه أداة متقدمة؛ حافظ على وسوم SEO والروابط وأكواد الصفحة.</p><div id="page-list" class="page-grid"></div><div id="page-editor-wrap" hidden style="margin-top:18px"><label id="page-file-label" for="page-source">ملف الصفحة</label><textarea id="page-source" spellcheck="false"></textarea><div id="page-msg" class="msg" hidden></div><div class="actions"><button id="page-save" class="btn btn-primary" type="button">حفظ الصفحة ونشرها</button><button id="page-cancel" class="btn btn-light" type="button">إلغاء</button></div></div></div>
 </section>
 
 <section id="v-edit" hidden>
@@ -115,6 +129,10 @@ code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;bor
 <button type="button" data-cmd="ul">• قائمة</button>
 <button type="button" data-cmd="ol">1. قائمة مرقمة</button>
 <button type="button" data-cmd="link">رابط</button>
+<button type="button" data-cmd="image">إدراج صورة برابط</button>
+<button type="button" data-cmd="quote">اقتباس</button>
+<button type="button" data-cmd="hr">فاصل</button>
+<button type="button" data-cmd="table">جدول</button>
 <button type="button" data-cmd="callout">ملاحظة مميزة</button>
 <span class="sp"></span>
 <button type="button" data-cmd="undo">تراجع</button>
@@ -122,6 +140,7 @@ code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;bor
 </div>
 <div id="editor" class="content editor" contenteditable="true" dir="rtl" role="textbox" aria-multiline="true" aria-label="نص المقال"></div>
 <textarea id="htmlbox" dir="ltr" rows="16" hidden></textarea>
+<label for="image-upload" class="hint" style="display:inline-block;margin-inline-end:8px">رفع صورة من جهازك</label><input id="image-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="max-width:100%"><p class="hint">الصورة المرفوعة تُحفظ داخل assets/uploads في مستودع الموقع.</p>
 <p class="hint"><button type="button" id="btn-html" class="btn btn-light">عرض كود HTML</button> &nbsp; نصيحة: اكتب مقدمة قصيرة ثم عناوين رئيسية وفرعية، ويُفضل ألا يقل المقال عن 300 كلمة.</p>
 <div id="e-msg" class="msg" hidden></div>
 <div class="actions">
