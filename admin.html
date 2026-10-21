@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة إدارة المقالات</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+[hidden]{display:none!important}
+body{background:var(--soft)}
+.adm{padding:28px 0 60px;max-width:860px}
+.adm section{padding:12px 0}
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+.adm h1{font-size:1.6rem;margin-bottom:.4rem}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.bar h1{margin:0}
+label,.lbl{display:block;font-weight:700;color:var(--navy);margin:14px 0 6px;font-size:.98rem}
+label small,.lbl small{font-weight:400;color:var(--muted);margin-inline-start:6px}
+label small.ok{color:#15803d}
+input[type=text],input:not([type]),input[type=password],textarea{width:100%;font:inherit;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}
+input:focus,textarea:focus,.editor:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(31,181,214,.2)}
+input[readonly]{background:var(--soft);color:var(--muted)}
+.chk{display:flex;align-items:center;gap:8px;font-weight:600}
+.chk input{width:auto}
+.btn-light{background:#fff;color:var(--navy);border-color:var(--line);padding:8px 16px;font-size:.92rem}
+.btn-danger{background:#fff;color:#b91c1c;border-color:#fecaca;padding:8px 16px;font-size:.92rem}
+.btn:disabled{opacity:.6;cursor:wait;transform:none}
+.msg{padding:12px 16px;border-radius:10px;margin:14px 0;font-weight:600;background:#eef6fb;color:var(--navy)}
+.msg.ok{background:#dcfce7;color:#14532d}
+.msg.err{background:#fee2e2;color:#7f1d1d}
+details{margin-top:18px}
+details ol{padding-inline-start:1.3rem;color:var(--muted)}
+details li{margin-bottom:6px}
+code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;flex-wrap:wrap}
+.pinfo b{display:block;color:var(--navy);line-height:1.5}
+.pinfo small{color:var(--muted)}
+.pact{display:flex;gap:8px;flex-wrap:wrap}
+.pact .btn:hover{text-decoration:none}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:var(--soft);border:1.5px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0}
+.toolbar.off{opacity:.45;pointer-events:none}
+.toolbar button{font:inherit;font-size:.9rem;font-weight:700;padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:8px;cursor:pointer}
+.toolbar button:hover{background:#e6f3f9}
+.toolbar .sp{flex:1}
+.editor{max-width:none!important;min-height:320px;padding:18px;border:1.5px solid var(--line);border-radius:0 0 10px 10px;background:#fff;margin:0!important}
+.editor h2{font-size:1.4rem;margin-top:1rem}
+#htmlbox{font-family:monospace;font-size:.9rem;border-radius:0 0 10px 10px;min-height:320px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.pv{position:fixed;inset:0;z-index:200;background:#fff;display:flex;flex-direction:column}
+.pvbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--navy);color:#fff}
+.pvbar b{color:#fff}
+.pv iframe{flex:1;border:0;width:100%}
+.hint{color:var(--muted);font-size:.92rem}
+</style>
+</head>
+<body class="admin">
+<header class="site-header"><div class="container nav">
+<a class="brand" href="index.html"><img src="assets/favicon.svg" width="40" height="40" alt=""><span><b>لوحة إدارة المقالات</b><small>العودة إلى الموقع</small></span></a>
+<button id="logout" class="btn btn-light" hidden>تسجيل خروج</button>
+</div></header>
+
+<main class="container adm">
+
+<section id="v-login">
+<div class="panel">
+<h1>تسجيل الدخول</h1>
+<p class="hint">أضف مقالات أو عدّلها أو احذفها، وتُنشر تلقائياً على موقعك عبر GitHub.</p>
+<form id="login-form" autocomplete="off">
+<label for="l-repo">مستودع الموقع على GitHub <small>مثال: tabarak/tabarak.github.io</small></label>
+<input id="l-repo" dir="ltr" placeholder="username/username.github.io" required>
+<label for="l-token">رمز الوصول (Token)</label>
+<input id="l-token" type="password" dir="ltr" placeholder="github_pat_..." required>
+<label class="chk"><input id="l-save" type="checkbox" checked> تذكّرني على هذا الجهاز <small>(لا تفعّلها على جهاز عام)</small></label>
+<div class="actions"><button id="l-go" class="btn btn-dark" type="submit">دخول</button></div>
+<div id="l-msg" class="msg" hidden></div>
+</form>
+<details>
+<summary>كيف أحصل على رمز الوصول؟ (مرة واحدة فقط)</summary>
+<ol>
+<li>سجّل الدخول إلى GitHub ثم افتح: <b>Settings ← Developer settings ← Personal access tokens ← Fine-grained tokens</b>.</li>
+<li>اضغط <b>Generate new token</b> وسمّه مثلاً <code>tabarak-admin</code>، واختر مدة الصلاحية (مثلاً سنة).</li>
+<li>في <b>Repository access</b> اختر <b>Only select repositories</b> ثم اختر مستودع موقعك فقط.</li>
+<li>في <b>Permissions ← Repository permissions</b> اجعل <b>Contents</b> على <b>Read and write</b>.</li>
+<li>اضغط <b>Generate token</b> وانسخ الرمز (يبدأ بـ <code>github_pat_</code>) والصقه هنا. لن يُعرض مرة أخرى، فاحفظه في مكان آمن.</li>
+</ol>
+<p class="hint">الرمز يعمل على مستودع موقعك فقط، ويُخزَّن في متصفحك ولا يُرسل إلا إلى GitHub. لا تشاركه مع أحد.</p>
+</details>
+</div>
+</section>
+
+<section id="v-list" hidden>
+<div class="bar"><h1>المقالات</h1><button id="btn-new" class="btn btn-primary">+ مقال جديد</button></div>
+<div id="l-banner" class="msg" hidden></div>
+<div id="posts"></div>
+</section>
+
+<section id="v-edit" hidden>
+<div class="bar"><h1 id="e-head">مقال جديد</h1><button id="e-back" class="btn btn-light">رجوع للقائمة</button></div>
+<div class="panel">
+<label for="f-title">عنوان المقال</label>
+<input id="f-title" maxlength="120" placeholder="مثال: أسباب تسرب الأسطح وطرق علاجها">
+<label for="f-slug">رابط المقال <small>بالإنجليزية فقط، مثل: roof-leak-causes (لا يمكن تغييره بعد النشر)</small></label>
+<input id="f-slug" dir="ltr" maxlength="80" placeholder="roof-leak-causes">
+<label for="f-desc">وصف قصير يظهر في نتائج جوجل <small id="f-count"></small></label>
+<textarea id="f-desc" rows="3" maxlength="200" placeholder="جملتان تلخصان المقال وتحثان القارئ على فتحه"></textarea>
+<div class="lbl">نص المقال</div>
+<div id="toolbar" class="toolbar">
+<button type="button" data-cmd="h2">عنوان رئيسي</button>
+<button type="button" data-cmd="h3">عنوان فرعي</button>
+<button type="button" data-cmd="p">فقرة</button>
+<button type="button" data-cmd="bold"><b>غامق</b></button>
+<button type="button" data-cmd="ul">• قائمة</button>
+<button type="button" data-cmd="ol">1. قائمة مرقمة</button>
+<button type="button" data-cmd="link">رابط</button>
+<button type="button" data-cmd="callout">ملاحظة مميزة</button>
+<span class="sp"></span>
+<button type="button" data-cmd="undo">تراجع</button>
+<button type="button" data-cmd="redo">إعادة</button>
+</div>
+<div id="editor" class="content editor" contenteditable="true" dir="rtl" role="textbox" aria-multiline="true" aria-label="نص المقال"></div>
+<textarea id="htmlbox" dir="ltr" rows="16" hidden></textarea>
+<p class="hint"><button type="button" id="btn-html" class="btn btn-light">عرض كود HTML</button> &nbsp; نصيحة: اكتب مقدمة قصيرة ثم عناوين رئيسية وفرعية، ويُفضل ألا يقل المقال عن 300 كلمة.</p>
+<div id="e-msg" class="msg" hidden></div>
+<div class="actions">
+<button id="e-save" class="btn btn-primary" type="button">نشر المقال</button>
+<button id="e-preview" class="btn btn-light" type="button">معاينة</button>
+</div>
+</div>
+</section>
+
+</main>
+
+<div id="pv" class="pv" hidden><div class="pvbar"><b>معاينة المقال (لم يُنشر بعد)</b><button id="pv-close" class="btn btn-light" type="button">إغلاق</button></div><iframe id="pv-frame" title="معاينة المقال"></iframe></div>
+
+<script src="assets/admin.js"></script>
+</body>
+</html>
