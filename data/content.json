@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-21",
+  "updated": "2026-10-22",
   "settings": {
     "name": "تبارك",
     "tagline": "للعزل وكشف التسربات",
@@ -42,7 +42,7 @@
       "accent": "#1fb5d6",
       "button": "#f59e0b"
     },
-    "googleVerify": "",
+    "googleVerify": "<meta name=\"google-site-verification\" content=\"5VuI2b2oSO58xiv6WKR6El5pJRkMv0FBYq98JLlxOrw\" />",
     "bingVerify": ""
   },
   "home": {
