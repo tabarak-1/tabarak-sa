@@ -3,72 +3,104 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة إدارة المقالات</title>
+<title>لوحة إدارة الموقع</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/theme.css">
 <style>
 [hidden]{display:none!important}
 body{background:var(--soft)}
-.adm{padding:28px 0 60px;max-width:860px}
-.adm section{padding:12px 0}
-.panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
-.adm h1{font-size:1.6rem;margin-bottom:.4rem}
-.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.adm{padding:20px 0 70px;max-width:920px}
+.adm section{padding:8px 0}
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.adm h1{font-size:1.5rem;margin-bottom:.3rem}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0 14px;flex-wrap:wrap}
 .bar h1{margin:0}
-label,.lbl{display:block;font-weight:700;color:var(--navy);margin:14px 0 6px;font-size:.98rem}
-label small,.lbl small{font-weight:400;color:var(--muted);margin-inline-start:6px}
-label small.ok{color:#15803d}
-input[type=text],input:not([type]),input[type=password],textarea{width:100%;font:inherit;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}
-input:focus,textarea:focus,.editor:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(31,181,214,.2)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 12px;position:sticky;top:70px;z-index:20;background:var(--soft)}
+.tabs button{font:inherit;font-weight:700;padding:9px 18px;border:1.5px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;cursor:pointer;white-space:nowrap}
+.tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+label,.lbl{display:block;font-weight:700;color:var(--navy);margin:14px 0 6px;font-size:.97rem}
+label span{display:block;margin-bottom:6px}
+label.chk{display:flex;gap:8px;align-items:center}
+label.chk span{display:inline;margin:0}
+input,textarea,select{width:100%;font:inherit;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}
+label input,label textarea,label select{font-weight:400}
+input[type=checkbox]{width:auto}
+input[type=color]{width:80px;height:44px;padding:3px;cursor:pointer}
+input:focus,textarea:focus,select:focus,.editor:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(31,181,214,.2)}
 input[readonly]{background:var(--soft);color:var(--muted)}
-.chk{display:flex;align-items:center;gap:8px;font-weight:600}
-.chk input{width:auto}
+.fh{margin:26px 0 4px;padding:8px 14px;background:var(--soft);border-inline-start:5px solid var(--cyan);border-radius:8px;font-weight:800;color:var(--navy)}
+.fh:first-child{margin-top:0}
+.note{color:var(--muted);font-size:.88rem;margin-top:4px}
+.cnt{font-size:.85rem;color:#b45309;margin-top:4px}
+.cnt.ok{color:#15803d}
 .btn-light{background:#fff;color:var(--navy);border-color:var(--line);padding:8px 16px;font-size:.92rem}
 .btn-danger{background:#fff;color:#b91c1c;border-color:#fecaca;padding:8px 16px;font-size:.92rem}
-.btn:disabled{opacity:.6;cursor:wait;transform:none}
+.btn:disabled{opacity:.55;cursor:default;transform:none}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center}
 .msg{padding:12px 16px;border-radius:10px;margin:14px 0;font-weight:600;background:#eef6fb;color:var(--navy)}
 .msg.ok{background:#dcfce7;color:#14532d}
 .msg.err{background:#fee2e2;color:#7f1d1d}
+.hint{color:var(--muted);font-size:.94rem;margin:0 0 12px}
+.empty{padding:24px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--line);border-radius:12px}
 details{margin-top:18px}
 details ol{padding-inline-start:1.3rem;color:var(--muted)}
 details li{margin-bottom:6px}
 code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;border-radius:6px;font-size:.9em}
 .prow{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;flex-wrap:wrap}
 .pinfo b{display:block;color:var(--navy);line-height:1.5}
-.pinfo small{color:var(--muted)}
+.pinfo small{color:var(--muted);direction:ltr;unicode-bidi:plaintext}
 .pact{display:flex;gap:8px;flex-wrap:wrap}
 .pact .btn:hover{text-decoration:none}
-.toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:var(--soft);border:1.5px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0}
-.toolbar.off{opacity:.45;pointer-events:none}
-.toolbar button{font:inherit;font-size:.9rem;font-weight:700;padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:8px;cursor:pointer}
+/* قوائم داخل النماذج */
+.items{display:grid;gap:10px}
+.item{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:#fbfdfe}
+.ihead{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.ihead b{flex:1;color:var(--navy);font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini{font:inherit;font-size:.85rem;padding:4px 10px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;color:var(--navy)}
+.mini.danger{color:#b91c1c;border-color:#fecaca}
+.fld>.btn{margin-top:10px}
+.imgfld{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.thumbprev{width:120px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+/* المحرر الغني */
+.toolbar{display:flex;flex-wrap:wrap;gap:5px;padding:8px;background:var(--soft);border:1.5px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0}
+.toolbar.off button:not(.htmlbtn){opacity:.4;pointer-events:none}
+.toolbar button{font:inherit;font-size:.86rem;font-weight:700;padding:5px 10px;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:8px;cursor:pointer}
 .toolbar button:hover{background:#e6f3f9}
-.toolbar .sp{flex:1}
-.editor{max-width:none!important;min-height:320px;padding:18px;border:1.5px solid var(--line);border-radius:0 0 10px 10px;background:#fff;margin:0!important}
+.toolbar .htmlbtn{margin-inline-start:auto;background:#fff7e6}
+.toolbar .htmlbtn.on{background:var(--amber)}
+.toolbar .sep{width:1px;background:var(--line);margin:2px 4px}
+.editor{max-width:none!important;min-height:300px;padding:18px;border:1.5px solid var(--line);border-radius:0 0 10px 10px;background:#fff;margin:0!important;overflow-x:auto}
 .editor h2{font-size:1.4rem;margin-top:1rem}
-.editor img{max-width:100%;height:auto;border-radius:12px}
-.editor figure{margin:18px auto;text-align:center}
-.editor figcaption{font-size:.9rem;color:var(--muted);margin-top:6px}
-.editor table{width:100%;border-collapse:collapse;margin:16px 0}
-.editor th,.editor td{border:1px solid var(--line);padding:8px;text-align:right}
-.page-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.page-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
-.page-card h3{margin:0 0 8px;color:var(--navy)}
-#page-source{display:none}
-#htmlbox{font-family:monospace;font-size:.9rem;border-radius:0 0 10px 10px;min-height:320px}
-.tox-tinymce{border-radius:10px!important;direction:ltr}.tox .tox-edit-area__iframe{background:#fff}.visual-help{background:#f0f9ff;border:1px solid #bae6fd;padding:12px 14px;border-radius:10px;margin:12px 0}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.editor img{max-width:100%}
+.htmlbox{font-family:monospace;font-size:.9rem;border-radius:0 0 10px 10px;min-height:300px}
+.seo{margin-top:18px;padding:14px 18px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
+.seo ul{list-style:none;margin:8px 0 0;padding:0}
+.seo li{font-size:.93rem;margin-bottom:4px}
+.seo li.ok{color:#15803d}
+.seo li.warn{color:#b45309}
+/* نافذة الصور والمعاينة */
+.modal{position:fixed;inset:0;z-index:300;background:rgba(8,43,68,.55);display:flex;align-items:flex-start;justify-content:center;padding:30px 12px;overflow-y:auto}
+.mbox{background:#fff;border-radius:16px;padding:22px;width:min(620px,100%);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.mbox h2{margin-bottom:10px}
+.filebtn{display:block;border:2px dashed var(--cyan);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:var(--soft);margin:0}
+.filebtn input{margin-top:10px}
+.pvimg{max-width:100%;max-height:220px;margin:12px auto;display:block;border-radius:10px}
+.lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;max-height:190px;overflow-y:auto;color:var(--muted)}
+.libimg{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:2px solid var(--line);cursor:pointer}
+.libimg:hover{border-color:var(--cyan)}
 .pv{position:fixed;inset:0;z-index:200;background:#fff;display:flex;flex-direction:column}
 .pvbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--navy);color:#fff}
 .pvbar b{color:#fff}
 .pv iframe{flex:1;border:0;width:100%}
-.hint{color:var(--muted);font-size:.92rem}
+@media(max-width:600px){.panel{padding:14px}.thumbprev{width:90px;height:60px}}
 </style>
 </head>
 <body class="admin">
 <header class="site-header"><div class="container nav">
-<a class="brand" href="index.html"><img src="assets/favicon.svg" width="40" height="40" alt=""><span><b>لوحة إدارة المقالات</b><small>العودة إلى الموقع</small></span></a>
+<a class="brand" href="index.html"><img src="assets/favicon.svg" width="40" height="40" alt=""><span><b>لوحة إدارة الموقع</b><small>العودة إلى الموقع</small></span></a>
 <button id="logout" class="btn btn-light" hidden>تسجيل خروج</button>
 </div></header>
 
@@ -77,13 +109,13 @@ code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;bor
 <section id="v-login">
 <div class="panel">
 <h1>تسجيل الدخول</h1>
-<p class="hint">أضف مقالات أو عدّلها أو احذفها، وتُنشر تلقائياً على موقعك عبر GitHub.</p>
+<p class="hint">عدّل أي شيء في موقعك (الصفحات والخدمات والمقالات والصور والألوان)، وتُنشر التغييرات تلقائياً عبر GitHub.</p>
 <form id="login-form" autocomplete="off">
-<label for="l-repo">مستودع الموقع على GitHub <small>مثال: tabarak/tabarak.github.io</small></label>
-<input id="l-repo" dir="ltr" placeholder="username/username.github.io" required>
-<label for="l-token">رمز الوصول (Token)</label>
+<label for="l-repo"><span>مستودع الموقع على GitHub (مثال: tabarak/tabarak.github.io)</span></label>
+<input id="l-repo" dir="ltr" placeholder="username/repository" required>
+<label for="l-token"><span>رمز الوصول (Token)</span></label>
 <input id="l-token" type="password" dir="ltr" placeholder="github_pat_..." required>
-<label class="chk"><input id="l-save" type="checkbox" checked> تذكّرني على هذا الجهاز <small>(لا تفعّلها على جهاز عام)</small></label>
+<label class="chk"><input id="l-save" type="checkbox" checked><span>تذكّرني على هذا الجهاز (لا تفعّلها على جهاز عام)</span></label>
 <div class="actions"><button id="l-go" class="btn btn-dark" type="submit">دخول</button></div>
 <div id="l-msg" class="msg" hidden></div>
 </form>
@@ -94,68 +126,30 @@ code{direction:ltr;unicode-bidi:embed;background:var(--soft);padding:1px 6px;bor
 <li>اضغط <b>Generate new token</b> وسمّه مثلاً <code>tabarak-admin</code>، واختر مدة الصلاحية (مثلاً سنة).</li>
 <li>في <b>Repository access</b> اختر <b>Only select repositories</b> ثم اختر مستودع موقعك فقط.</li>
 <li>في <b>Permissions ← Repository permissions</b> اجعل <b>Contents</b> على <b>Read and write</b>.</li>
-<li>اضغط <b>Generate token</b> وانسخ الرمز (يبدأ بـ <code>github_pat_</code>) والصقه هنا. لن يُعرض مرة أخرى، فاحفظه في مكان آمن.</li>
+<li>اضغط <b>Generate token</b> وانسخ الرمز (يبدأ بـ <code>github_pat_</code>) والصقه هنا.</li>
 </ol>
 <p class="hint">الرمز يعمل على مستودع موقعك فقط، ويُخزَّن في متصفحك ولا يُرسل إلا إلى GitHub. لا تشاركه مع أحد.</p>
 </details>
 </div>
 </section>
 
-<section id="v-list" hidden>
-<div class="bar"><h1>لوحة التحكم</h1><div class="actions" style="margin:0"><button id="btn-pages" class="btn btn-light" type="button">إدارة صفحات الموقع</button><button id="btn-new" class="btn btn-primary">+ مقال جديد</button></div></div>
-<div id="l-banner" class="msg" hidden></div>
-<div id="posts"></div>
-</section>
-
-<section id="v-pages" hidden>
-<div class="bar"><h1>إدارة صفحات الموقع</h1><button id="pages-back" class="btn btn-light" type="button">رجوع للوحة التحكم</button></div>
-<div class="panel"><p class="hint">اختر الصفحة ثم عدّل النصوص والصور والعناوين من محرر مرئي يشبه محرر ووردبريس. لن تحتاج إلى كتابة الأكواد.</p><div id="page-list" class="page-grid"></div><div id="page-editor-wrap" hidden style="margin-top:18px"><label id="page-file-label">تحرير الصفحة</label><div class="visual-help">حرّر المحتوى مباشرة من المحرر: حدّد النص لتنسيقه، أو استخدم زر الصورة لإدراج صورة من رابط. لا تحذف عناصر التنقل أو أزرار التواصل إذا كنت تريد الإبقاء عليها.</div><div id="page-visual" dir="rtl"></div><label for="page-image-upload" style="display:inline-block">إضافة صورة من الجهاز</label><input id="page-image-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="max-width:100%"><textarea id="page-source" spellcheck="false" hidden></textarea><div id="page-msg" class="msg" hidden></div><div class="actions"><button id="page-save" class="btn btn-primary" type="button">حفظ الصفحة ونشرها</button><button id="page-cancel" class="btn btn-light" type="button">إلغاء</button></div></div></div>
-</section>
-
-<section id="v-edit" hidden>
-<div class="bar"><h1 id="e-head">مقال جديد</h1><button id="e-back" class="btn btn-light">رجوع للقائمة</button></div>
-<div class="panel">
-<label for="f-title">عنوان المقال</label>
-<input id="f-title" maxlength="120" placeholder="مثال: أسباب تسرب الأسطح وطرق علاجها">
-<label for="f-slug">رابط المقال <small>بالإنجليزية فقط، مثل: roof-leak-causes (لا يمكن تغييره بعد النشر)</small></label>
-<input id="f-slug" dir="ltr" maxlength="80" placeholder="roof-leak-causes">
-<label for="f-desc">وصف قصير يظهر في نتائج جوجل <small id="f-count"></small></label>
-<textarea id="f-desc" rows="3" maxlength="200" placeholder="جملتان تلخصان المقال وتحثان القارئ على فتحه"></textarea>
-<div class="lbl">نص المقال</div>
-<div id="toolbar" class="toolbar">
-<button type="button" data-cmd="h2">عنوان رئيسي</button>
-<button type="button" data-cmd="h3">عنوان فرعي</button>
-<button type="button" data-cmd="p">فقرة</button>
-<button type="button" data-cmd="bold"><b>غامق</b></button>
-<button type="button" data-cmd="ul">• قائمة</button>
-<button type="button" data-cmd="ol">1. قائمة مرقمة</button>
-<button type="button" data-cmd="link">رابط</button>
-<button type="button" data-cmd="image">إدراج صورة برابط</button>
-<button type="button" data-cmd="quote">اقتباس</button>
-<button type="button" data-cmd="hr">فاصل</button>
-<button type="button" data-cmd="table">جدول</button>
-<button type="button" data-cmd="callout">ملاحظة مميزة</button>
-<span class="sp"></span>
-<button type="button" data-cmd="undo">تراجع</button>
-<button type="button" data-cmd="redo">إعادة</button>
-</div>
-<div id="editor" class="content editor" contenteditable="true" dir="rtl" role="textbox" aria-multiline="true" aria-label="نص المقال"></div>
-<textarea id="htmlbox" dir="ltr" rows="16" hidden></textarea>
-<label for="image-upload" class="hint" style="display:inline-block;margin-inline-end:8px">رفع صورة من جهازك</label><input id="image-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="max-width:100%"><p class="hint">الصورة المرفوعة تُحفظ داخل assets/uploads في مستودع الموقع.</p>
-<p class="hint"><button type="button" id="btn-html" class="btn btn-light">عرض كود HTML</button> &nbsp; نصيحة: اكتب مقدمة قصيرة ثم عناوين رئيسية وفرعية، ويُفضل ألا يقل المقال عن 300 كلمة.</p>
-<div id="e-msg" class="msg" hidden></div>
-<div class="actions">
-<button id="e-save" class="btn btn-primary" type="button">نشر المقال</button>
-<button id="e-preview" class="btn btn-light" type="button">معاينة</button>
-</div>
-</div>
+<section id="v-app" hidden>
+<nav id="tabs" class="tabs" aria-label="أقسام الموقع">
+<button type="button" data-tab="home">الصفحة الرئيسية</button>
+<button type="button" data-tab="services">الخدمات</button>
+<button type="button" data-tab="pages">صفحات إضافية</button>
+<button type="button" data-tab="posts">المقالات</button>
+<button type="button" data-tab="settings">إعدادات الموقع</button>
+</nav>
+<div id="banner" class="msg" hidden></div>
+<div id="pane"></div>
 </section>
 
 </main>
 
-<div id="pv" class="pv" hidden><div class="pvbar"><b>معاينة المقال (لم يُنشر بعد)</b><button id="pv-close" class="btn btn-light" type="button">إغلاق</button></div><iframe id="pv-frame" title="معاينة المقال"></iframe></div>
+<div id="pv" class="pv" hidden><div class="pvbar"><b>معاينة (لم تُنشر بعد)</b><button id="pv-close" class="btn btn-light" type="button">إغلاق</button></div><iframe id="pv-frame" title="معاينة الصفحة"></iframe></div>
 
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="assets/site-core.js"></script>
 <script src="assets/admin.js"></script>
 </body>
 </html>
