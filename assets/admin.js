@@ -18,6 +18,8 @@
   function dateAr(iso) { var p = iso.split('-'); return (+p[2]) + ' ' + MONTHS[+p[1] - 1] + ' ' + p[0]; }
   function readLabel(m) { if (m <= 1) return 'دقيقة واحدة'; if (m === 2) return 'دقيقتان'; if (m <= 10) return m + ' دقائق'; return m + ' دقيقة'; }
   function msg(node, text, kind) { node.textContent = text || ''; node.className = 'msg ' + (kind || ''); node.hidden = !text; }
+  function norm(t) { return String(t || '').replace(/[\u064B-\u0652\u0640]/g, '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/(^|\s)ال(?=\S{2})/g, '$1').replace(/\s+/g, ' ').trim().toLowerCase(); }
+  function count(hay, needle) { if (!needle) return 0; var n = 0, i = 0; while ((i = hay.indexOf(needle, i)) >= 0) { n++; i += needle.length; } return n; }
   function textOf(html) { return String(html).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(); }
   async function busy(btn, label, fn, out) {
     var old = btn.textContent; btn.disabled = true; btn.textContent = label; if (out) msg(out, '');
@@ -519,6 +521,7 @@
       { k: 'seoTitle', t: 'text', l: 'عنوان الصفحة في جوجل', hint: [30, 60] },
       { k: 'metaDesc', t: 'textarea', l: 'وصف الصفحة في جوجل', hint: [120, 160] },
       { t: 'h', l: 'محتوى الصفحة' },
+      { k: 'toc', t: 'check', l: 'إظهار فهرس محتويات في أعلى الصفحة (روابط تنقلك إلى كل فقرة، تُبنى تلقائياً من العناوين الرئيسية)' },
       { k: 'body', t: 'rich', l: 'المحتوى' },
       FAQ
     ];
@@ -530,6 +533,7 @@
       { k: 'inMenu', t: 'check', l: 'إظهار الصفحة في القائمة العلوية وأسفل الموقع' },
       { k: 'h1', t: 'text', l: 'العنوان الرئيسي للصفحة' }, { k: 'lead', t: 'textarea', l: 'نص تعريفي (اختياري)', rows: 2 },
       { k: 'seoTitle', t: 'text', l: 'عنوان الصفحة في جوجل', hint: [30, 60] }, { k: 'metaDesc', t: 'textarea', l: 'وصف الصفحة في جوجل', hint: [120, 160] },
+      { k: 'toc', t: 'check', l: 'إظهار فهرس محتويات في أعلى الصفحة (تُبنى تلقائياً من العناوين الرئيسية)' },
       { k: 'body', t: 'rich', l: 'المحتوى' }
     ];
   }
@@ -542,6 +546,9 @@
       { k: 'title', t: 'text', l: 'عنوان المقال', hint: [20, 55] },
       { k: 'slug', t: 'text', l: 'رابط المقال (بالإنجليزية فقط)', ltr: true, ro: editing, ph: 'roof-leak-causes', note: editing ? 'لا يتغير بعد النشر (للحفاظ على ترتيبه في جوجل)' : 'مثال: roof-leak-causes' },
       { k: 'desc', t: 'textarea', l: 'وصف قصير يظهر في نتائج جوجل', hint: [120, 160] },
+      { k: 'focusKw', t: 'text', l: 'الكلمة المفتاحية الرئيسية (العبارة التي تريد الظهور بها في جوجل)', ph: 'مثال: عزل اسطح جدة', note: 'لا تظهر للزوار، تستخدم لفحص المقال فقط. اختر عبارة واحدة يبحث بها العملاء.' },
+      { k: 'keywords', t: 'lines', l: 'كلمات مفتاحية ثانوية (كل كلمة في سطر)', rows: 3, note: 'عبارات قريبة تريد أن تظهر في النص، مثل: تسرب الاسطح، عزل مائي' },
+      { k: 'toc', t: 'check', l: 'إظهار قائمة محتويات في أعلى المقال (تُبنى تلقائياً من العناوين الرئيسية)' },
       { k: 'image', t: 'image', l: 'صورة المقال الرئيسية (اختيارية، تظهر في أعلى المقال وعند المشاركة)', w: 'imageWidth', h: 'imageHeight' },
       { k: 'body', t: 'rich', l: 'نص المقال' }
     ];
@@ -596,6 +603,9 @@
       if (!slugEditing && base) throw new Error('يوجد مقال بنفس الرابط. غيّر رابط المقال.');
       var date = base ? base.date : today();
       var p = { slug: slug, title: vals.title, desc: vals.desc, date: date, date_ar: dateAr(date), read: readLabel(Math.max(1, Math.round(words / 180))), body: '\n' + vals.body + '\n' };
+      if (vals.focusKw) p.focusKw = vals.focusKw;
+      if (vals.keywords && vals.keywords.length) p.keywords = vals.keywords;
+      if (vals.toc) p.toc = true;
       if (vals.image) { p.image = vals.image; if (vals.imageWidth) { p.imageWidth = vals.imageWidth; p.imageHeight = vals.imageHeight; } }
       if (base) { p.modified = today(); posts[i] = p; } else posts.unshift(p);
     };
@@ -619,6 +629,21 @@
         [noalt === 0, 'كل الصور لها وصف بديل'],
         [!!v.slug && SLUG.test(v.slug) && v.slug.length <= 60, 'رابط المقال بالإنجليزية وقصير']
       ];
+      var kw = norm(v.focusKw || '');
+      if (!kw) items.push([false, 'اكتب الكلمة المفتاحية الرئيسية لتفعيل فحوصات الكلمات']);
+      else {
+        var nt = norm(text), words1 = kw.split(' ').length;
+        var first = norm(textOf((v.body.match(/<p[\s>][\s\S]*?<\/p>/) || [''])[0])), h2s = (v.body.match(/<h2[^>]*>[\s\S]*?<\/h2>/g) || []).map(function (x) { return norm(textOf(x)); });
+        var cnt = count(nt, kw), dens = words ? cnt * words1 / words * 100 : 0;
+        items.push([norm(v.title).indexOf(kw) >= 0, 'الكلمة الرئيسية في عنوان المقال']);
+        items.push([norm(v.desc).indexOf(kw) >= 0, 'الكلمة الرئيسية في الوصف']);
+        items.push([first.indexOf(kw) >= 0, 'الكلمة الرئيسية في الفقرة الأولى']);
+        items.push([h2s.some(function (x) { return x.indexOf(kw) >= 0; }), 'الكلمة الرئيسية في أحد العناوين الرئيسية']);
+        items.push([dens >= 0.5 && dens <= 2.5, 'تكرار الكلمة الرئيسية: ' + cnt + ' مرة (' + dens.toFixed(1) + '٪، المناسب 0.5–2.5٪ دون حشو)']);
+        var sec = (v.keywords || []);
+        if (sec.length) { var hit = sec.filter(function (k) { return count(nt, norm(k)) > 0; }); items.push([hit.length === sec.length, 'الكلمات الثانوية الموجودة في النص: ' + hit.length + ' من ' + sec.length + (hit.length < sec.length ? ' (ناقص: ' + sec.filter(function (k) { return hit.indexOf(k) < 0; }).join('، ') + ')' : '')]); }
+      }
+      if (h2 >= 3 && !v.toc) items.push([false, 'المقال فيه ' + h2 + ' عناوين، فعّل قائمة المحتويات لتسهيل القراءة']);
       box.textContent = '';
       var done = items.filter(function (i) { return i[0]; }).length;
       box.appendChild(el('b', null, 'مساعد السيو: ' + done + ' من ' + items.length));
@@ -684,7 +709,7 @@
     });
   }
   function editService(slug) {
-    var cur = slug ? S.content.services.filter(function (x) { return x.slug === slug; })[0] : { slug: '', title: '', icon: 'drop', short: '', h1: '', lead: '', seoTitle: '', metaDesc: '', body: '<h2>عنوان فرعي</h2>\n<p>اكتب هنا...</p>', faq: [] };
+    var cur = slug ? S.content.services.filter(function (x) { return x.slug === slug; })[0] : { slug: '', title: '', icon: 'drop', short: '', h1: '', lead: '', seoTitle: '', metaDesc: '', body: '<h2>عنوان فرعي</h2>\n<p>اكتب هنا...</p>', faq: [], toc: true };
     showForm({
       head: slug ? 'تعديل خدمة: ' + cur.title : 'خدمة جديدة', schema: serviceSchema(!!slug), data: cur, back: servicesList,
       mutate: function (v) { return listMutate('services', slug, v); }, message: function (v) { return (slug ? 'تعديل خدمة: ' : 'إضافة خدمة: ') + v.title; },
@@ -704,7 +729,7 @@
     });
   }
   function editPage(slug) {
-    var cur = slug ? S.content.pages.filter(function (x) { return x.slug === slug; })[0] : { slug: '', title: '', inMenu: true, h1: '', lead: '', seoTitle: '', metaDesc: '', body: '<p>اكتب هنا...</p>' };
+    var cur = slug ? S.content.pages.filter(function (x) { return x.slug === slug; })[0] : { slug: '', title: '', inMenu: true, toc: false, h1: '', lead: '', seoTitle: '', metaDesc: '', body: '<p>اكتب هنا...</p>' };
     showForm({
       head: slug ? 'تعديل صفحة: ' + cur.title : 'صفحة جديدة', schema: pageSchema(!!slug), data: cur, back: pagesList,
       mutate: function (v) { return listMutate('pages', slug, v); }, message: function (v) { return (slug ? 'تعديل صفحة: ' : 'إضافة صفحة: ') + v.title; },
@@ -728,7 +753,7 @@
     $('pane').appendChild(b);
   }
   function editPost(slug) {
-    var cur = slug ? S.posts.filter(function (x) { return x.slug === slug; })[0] : { slug: '', title: '', desc: '', image: '', body: '<p>اكتب مقدمة قصيرة هنا...</p>' };
+    var cur = slug ? S.posts.filter(function (x) { return x.slug === slug; })[0] : { slug: '', title: '', desc: '', image: '', focusKw: '', keywords: [], toc: true, body: '<p>اكتب مقدمة قصيرة هنا...</p>' };
     showForm({
       head: slug ? 'تعديل المقال' : 'مقال جديد', schema: postSchema(!!slug), data: cur, back: postsList, extra: seoExtra, postsOnly: true,
       mutate: function (v) { return postMutate(slug, v); }, message: function (v) { return (slug ? 'تعديل مقال: ' : 'إضافة مقال: ') + v.title; },

@@ -22,6 +22,17 @@
   function rgb(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
   function hex(a) { return '#' + a.map(function (v) { v = Math.max(0, Math.min(255, Math.round(v))); return (v < 16 ? '0' : '') + v.toString(16); }).join(''); }
   function mix(a, b, t) { var x = rgb(a), y = rgb(b); return hex([x[0] + (y[0] - x[0]) * t, x[1] + (y[1] - x[1]) * t, x[2] + (y[2] - x[2]) * t]); }
+  function withToc(html, label, extra) {
+    var n = 0, items = [];
+    var out = html.replace(/<h2([^>]*)>([\s\S]*?)<\/h2>/g, function (m, a, t) {
+      if (/\sid=/.test(a)) return m;
+      n++; items.push(['sec-' + n, t.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()]);
+      return '<h2' + a + ' id="sec-' + n + '">' + t + '</h2>';
+    });
+    items = items.concat(extra || []);
+    if (items.length < 2) return html;
+    return '<nav class="toc" aria-label="' + (label || 'محتويات المقال') + '"><b>' + (label || 'محتويات المقال') + '</b><ol>' + items.map(function (i) { return '<li><a href="#' + i[0] + '">' + esc(i[1]) + '</a></li>'; }).join('') + '</ol></nav>\n' + out;
+  }
   function fixAssets(html, rootPath) { return rootPath ? String(html).replace(/(src|href)="assets\//g, '$1="' + rootPath + 'assets/') : html; }
   function maxDate(list, fallback) { return list.reduce(function (m, d) { return d > m ? d : m; }, fallback || ''); }
 
@@ -178,11 +189,13 @@
 
   function servicePage(c, s) {
     var related = c.services.filter(function (x) { return x !== s; }).map(function (x) { return '<li><a href="' + x.slug + '.html">' + esc(x.title) + '</a></li>'; }).join('');
-    var ar = areasHtml(c);
+    var ar = areasHtml(c), hasFaq = (s.faq || []).length > 0;
+    var inner = s.body + '\n' + (ar ? ar + '\n' : '') + '<h2>خدمات أخرى</h2><ul>' + related + '<li><a href="blog/index.html">مقالات المدونة</a></li></ul>';
+    if (s.toc) inner = withToc(inner, 'محتويات الصفحة', hasFaq ? [['faq', 'أسئلة حول ' + s.title]] : []);
     var body = '\n<section class="hero page-hero"><div class="container"><div>\n<div class="crumbs"><a href="index.html">الرئيسية</a> / ' + esc(s.title) + '</div>\n' +
       '<h1>' + esc(s.h1) + '</h1><p class="lead">' + esc(s.lead) + '</p>\n<div class="actions"><a class="btn btn-primary" href="tel:' + c.phone + '">' + PHONE_ICON + 'اطلب معاينة: <span class="ltr">' + esc(c.disp) + '</span></a></div>\n</div></div></section>\n' +
-      '<section><div class="container"><div class="content">' + s.body + '\n' + (ar ? ar + '\n' : '') + '<h2>خدمات أخرى</h2><ul>' + related + '<li><a href="blog/index.html">مقالات المدونة</a></li></ul>\n</div></div></section>\n' +
-      ((s.faq || []).length ? '<section class="alt"><div class="container"><div class="section-head"><h2>أسئلة حول ' + esc(s.title) + '</h2></div>' + faqHtml(s.faq) + '</div></section>\n' : '') + cta(c);
+      '<section><div class="container"><div class="content">' + inner + '\n</div></div></section>\n' +
+      ((s.faq || []).length ? '<section class="alt" id="faq"><div class="container"><div class="section-head"><h2>أسئلة حول ' + esc(s.title) + '</h2></div>' + faqHtml(s.faq) + '</div></section>\n' : '') + cta(c);
     var path = s.slug + '.html';
     var sch = [{ '@context': 'https://schema.org', '@type': 'Service', name: s.title + ' في ' + c.city, serviceType: s.title, description: s.metaDesc, url: c.domain + '/' + path, provider: { '@id': c.domain + '/#business' }, areaServed: { '@type': 'City', name: c.city } }];
     if ((s.faq || []).length) sch.push(faqSchema(s.faq));
@@ -192,7 +205,7 @@
 
   function customPage(c, p) {
     var body = '\n<section class="hero page-hero"><div class="container"><div>\n<div class="crumbs"><a href="index.html">الرئيسية</a> / ' + esc(p.title) + '</div>\n<h1>' + esc(p.h1 || p.title) + '</h1>' +
-      (p.lead ? '<p class="lead">' + esc(p.lead) + '</p>' : '') + '\n</div></div></section>\n<section><div class="container"><div class="content">' + p.body + '\n</div></div></section>\n' + cta(c);
+      (p.lead ? '<p class="lead">' + esc(p.lead) + '</p>' : '') + '\n</div></div></section>\n<section><div class="container"><div class="content">' + (p.toc ? withToc(p.body, 'محتويات الصفحة') : p.body) + '\n</div></div></section>\n' + cta(c);
     var path = p.slug + '.html';
     return page(c, { path: path, title: p.seoTitle || p.title, desc: p.metaDesc || '', body: body, schema: [breadcrumb(c, [['الرئيسية', '/'], [p.title, '/' + path]])] });
   }
@@ -214,7 +227,7 @@
     }
     var body = '\n<section class="hero page-hero"><div class="container"><div>\n<div class="crumbs"><a href="../index.html">الرئيسية</a> / <a href="index.html">المدونة</a></div>\n' +
       '<h1>' + esc(p.title) + '</h1><p class="meta" style="color:#bcd6e5">' + p.date_ar + ' · قراءة ' + p.read + '</p></div></div></section>\n' +
-      '<section><div class="container"><article class="content">' + cover + fixAssets(p.body, '../') + '\n' +
+      '<section><div class="container"><article class="content">' + cover + fixAssets(p.toc ? withToc(p.body) : p.body, '../') + '\n' +
       '<div class="callout"><strong>خدماتنا في ' + esc(c.city) + ':</strong> ' + svcLinks + '</div>\n' +
       '<p><a class="btn btn-dark" href="tel:' + c.phone + '">' + PHONE_ICON + 'اتصل بنا: <span class="ltr">' + esc(c.disp) + '</span></a></p>\n</article></div></section>\n' +
       '<section class="alt"><div class="container"><div class="section-head"><h2>مقالات ذات صلة</h2></div>\n' +
@@ -225,6 +238,8 @@
       author: { '@type': 'Organization', name: c.name },
       publisher: { '@type': 'Organization', name: c.name, logo: { '@type': 'ImageObject', url: c.domain + '/assets/logo.svg' } }
     };
+    var kws = [p.focusKw].concat(p.keywords || []).filter(Boolean);
+    if (kws.length) art.keywords = kws.join(', ');
     if (p.image) art.image = c.domain + '/' + p.image;
     return page(c, { path: path, root: '../', og: 'article', image: p.image || '', title: p.title + ' - ' + c.name, desc: p.desc, body: body,
       schema: [art, breadcrumb(c, [['الرئيسية', '/'], ['المدونة', '/blog/index.html'], [p.title, '/' + path]])] });
